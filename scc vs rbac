@@ -1,0 +1,32 @@
+RBAC
+RBAC answers:
+What can this user/service account do in OpenShift?
+
+For example:
+Can I:
+- create Pods?
+- delete Deployments?
+- read Secrets?
+- create Services?
+
+SCC
+SCC answers:
+How is the Pod allowed to run?
+
+For example:
+Can the Pod:
+- run as root?
+- run privileged?
+- use host networking?
+- use certain capabilities?
+- access host paths?
+
+Think:
+RBAC
+ │
+ └── Controls API permissions
+
+
+SCC
+ │
+ └── Controls Pod security
