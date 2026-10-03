@@ -1,0 +1,65 @@
+1) Application container 
+
+--> This is the main container that runs your application.
+
+---------------------------------------------------------------------------------------------------------------------
+2) Init container
+
+--> An init container runs before the main application containers.
+    It is commonly used to perform initialization tasks.
+    Suppose your application requires a configuration file before starting. e.g. httpd.conf file creation , java conf file creation 
+    Database initialization
+    Downloading configuration
+    Setting permissions
+    Preparing files
+
+--> If the init container fails: then application does not start
+
+spec:
+  initContainers:
+    - name: init-config
+      image: busybox
+      command:
+        - sh
+        - -c
+        - echo "configuration" > /config/app.conf
+
+  containers:
+    - name: application
+      image: myapp:1.0
+
+------------------------------------------------------------------------------------------------------------------------
+3) Sidecar container
+
+--> A sidecar container runs alongside the main application container in the same Pod.
+
+--> They can share:
+    - Network
+    - Volumes
+    - Pod lifecycle
+
+--> Common sidecar uses
+    - Log collection
+    - Monitoring
+    - Proxy
+    - Security agent
+    - Configuration synchronization
+    - Service mesh functionality
+
+spec:
+  containers:
+
+    - name: application
+      image: myapp:1.0
+
+    - name: logging
+      image: log-collector:1.0
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+4) Ambassador container
+
+--> An ambassador container acts as a proxy between the application and an external service.
+    For example, your application needs to communicate with a database.
+
+
