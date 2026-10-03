@@ -62,4 +62,123 @@ spec:
 --> An ambassador container acts as a proxy between the application and an external service.
     For example, your application needs to communicate with a database.
 
+                        Application
+                             │
+                             ▼
+                        Ambassador
+                             │
+                             ▼
+                        Database
 
+    The ambassador can handle things such as:
+    - Proxying
+    - Connection management
+    - Routing
+    - Authentication
+    This pattern is less commonly discussed in modern OpenShift deployments than sidecars, but it is an important container design pattern.
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+5) Adapter container
+
+--> An adapter container modifies or transforms the output of the main application so another system can understand it.
+
+    Adapters are useful when:
+    - An application cannot be modified
+    - An external system expects a particular format
+    - Metrics/logs need transformation
+
+    Suppose your application produces:
+    Application logs:
+    INFO user=123 operation=login
+    
+    An adapter could transform that into a format expected by a monitoring system.
+    For example:
+    {
+      "user": 123,
+      "operation": "login",
+      "event": "login"
+    }
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+6) Privileged Container 
+
+--> OpenShift also supports containers that run with elevated Linux privileges, subject to OpenShift security controls.
+
+            Normally:
+            Container
+               ↓
+            Limited privileges
+            
+            A privileged container may have significantly more access:
+            Container
+               ↓
+            Elevated privileges
+               ↓
+            Host resources
+
+    For example, some infrastructure or node-level operations may require privileged access.
+    However, you should avoid privileged containers unless they are actually required because they increase security risk.
+    OpenShift uses Security Context Constraints (SCCs) to control what Pods/containers are allowed to do.
+    
+    Examples include controls around:
+    - Running as root
+    - Linux capabilities
+    - Host networking
+    - Host filesystem access
+    - Privileged mode
+    - SELinux context
+
+7) Containers sharing a Pod
+
+This is extremely important in OpenShift.
+A Pod can contain one or multiple containers.
+
+All these containers share the Pod's network namespace.
+Therefore, they can communicate using:
+localhost
+They can also share volumes.
+
+8) Ephemeral containers
+
+--> An ephemeral container is primarily used for troubleshooting a running Pod.
+
+    Suppose you have:
+    Pod
+    │
+    └── Application container
+    
+    The application container might not contain debugging tools such as:
+    bash
+    curl
+    ps
+    netstat
+
+--> Instead of rebuilding the application image, you can attach an ephemeral debugging container.
+    This is particularly useful for troubleshooting production applications.
+
+9) OpenShift build container
+
+--> OpenShift can also use containers as part of the image-building process.
+
+    The build environment itself runs in containers.
+    Depending on your OpenShift setup, you may encounter:
+    - BuildConfigs
+    - Build pods
+    - Source-to-Image (S2I)
+    - Dockerfile/Containerfile builds
+    - Pipeline-based builds
+
+
+Quick comparison
+Type	                                Main purpose	                                        Runs when?
+Application container	               Runs application	                                    Normal Pod lifecycle
+Init container	                       Initialization/setup	                                Before app containers
+Sidecar	                               Supporting application	                            Alongside application
+Ambassador	                           Proxy/communication	                                Alongside application
+Adapter	                               Transform output/data	                            Alongside application
+Privileged container	               Requires elevated privileges	                        As permitted by SCC
+Ephemeral container	                   Debugging	                                        Added to running Pod
+Build container	                       Build container images	                            During build
