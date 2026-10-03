@@ -1,0 +1,23 @@
+Dockerfile
+You can specify:
+USER 1000
+
+This says:
+The image expects the process to run as UID 1000.
+
+SCC
+SCC says:
+The Pod is allowed or not allowed to run with this UID.
+
+Dockerfile
+    │
+    │ requests UID 1000
+    ▼
+Container configuration
+    │
+    ▼
+SCC
+    │
+    ├── Allowed
+    │
+    └── Rejected
