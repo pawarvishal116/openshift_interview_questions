@@ -1,0 +1,44 @@
+These are also different.
+
+1) SecurityContext
+Defined in the Pod/Container specification.
+For example:
+securityContext:
+  runAsNonRoot: true
+
+It says:
+This Pod/container should run as non-root.
+
+2) SCC
+OpenShift checks whether that security configuration is permitted.
+So:
+Deployment YAML
+       │
+       ▼
+securityContext
+       │
+       ▼
+     SCC
+       │
+       ▼
+Allowed / Rejected
+
+
+                     OpenShift
+                         │
+          ┌──────────────┴──────────────┐
+          │                             │
+         RBAC                           SCC
+          │                             │
+          ▼                             ▼
+"What can you do?"             "How can your Pod run?"
+          │                             │
+          │                    ┌────────┼────────┐
+          │                    │        │        │
+          │                  UID    Privilege   Network
+          │                    │        │        │
+          │                    ▼        ▼        ▼
+          │                  User    Root?    Host network?
+          │
+          ▼
+Create/Delete/Read resources
