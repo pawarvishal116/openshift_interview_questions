@@ -1,1 +1,292 @@
 
+SCC is an OpenShift security mechanism that controls what a Pod/container is allowed to do on a cluster.
+A simple way to remember it:
+SCC decides how securely a container is allowed to run.
+
+For example, SCC can control whether a container:
+- Can run as root
+- Must run as a non-root user
+- Can use privileged mode
+- Can use host networking
+- Can access host directories
+- Can use Linux capabilities
+- Can use specific SELinux contexts
+- Can change its user/group IDs
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+1. Why does OpenShift need SCC?
+Imagine someone deploys this container:
+containers:
+- name: myapp
+  image: myapp:1.0
+  securityContext:
+    privileged: true
+
+A privileged container has much more access to the underlying host.
+Without security restrictions, a compromised application could potentially have much greater access to the node.
+OpenShift therefore puts security restrictions around Pods.
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+2. Example: Running as root
+Suppose an image contains:
+
+FROM ubuntu
+USER root
+CMD ["bash"]
+
+The application wants to run as:
+UID = 0
+UID 0 means root in Linux.
+
+OpenShift can use SCC to prevent that.
+For example, an SCC may require:
+MustRunAsNonRoot
+
+Then:
+Container requests root
+       ↓
+      SCC
+       ↓
+    DENIED
+
+This is one of the major security concepts in OpenShift.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+3. What does an SCC control?
+Let's look at the important fields.
+
+A. runAsUser
+Controls which Linux user ID the container can run as.
+For example:
+
+runAsUser:
+  type: MustRunAs
+  uid: 1000
+
+This means the container must run as UID 1000.
+
+B. runAsNonRoot
+This prevents a container from running as root.
+Conceptually:
+UID 0
+ ↓
+Root
+ ↓
+Not allowed
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+5. Linux capabilities
+Linux divides certain root-like privileges into capabilities.
+Examples include:
+NET_ADMIN
+NET_RAW
+SYS_ADMIN
+SYS_PTRACE
+
+An SCC can control which capabilities a container is allowed to use.
+
+For example:
+Container
+   │
+   ├── NET_RAW
+   ├── NET_ADMIN
+   └── SYS_ADMIN
+
+SCC can restrict these.
+This is another layer of container security.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+6. Host networking
+Normally, a Pod has its own network namespace.
+For example:
+Node
+│
+├── Pod A
+│    └── Pod network
+│
+└── Pod B
+     └── Pod network
+
+An SCC can control whether a Pod is allowed to use:
+hostNetwork: true
+
+If allowed:
+Node network
+     │
+     └── Pod
+
+This gives the Pod much closer access to the node's network environment.
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+7. Host filesystem
+A Pod might request access to the host filesystem.
+For example:
+volumes:
+- name: host
+  hostPath:
+    path: /etc
+
+This can be dangerous because /etc belongs to the host.
+SCC can restrict host filesystem access.
+
+---------------------------------------------------------------------------------------------------------------------------
+
+8. SELinux
+OpenShift makes heavy use of SELinux for additional isolation.
+SELinux can help ensure that a container is restricted from accessing resources it shouldn't access, even if normal Linux permissions might otherwise allow it.
+Think of security as multiple layers:
+              OpenShift
+                  │
+        ┌─────────┴─────────┐
+        │                   │
+       SCC                SELinux
+        │                   │
+        ▼                   ▼
+ Container security     Resource isolation
+
+You don't need to master SELinux immediately, but you should know that it is an important part of OpenShift security.
+
+--------------------------------------------------------------------------------------------------------------------------
+
+9. Important SCC types
+OpenShift commonly has several predefined SCCs.
+You can see them with:
+oc get scc
+
+You may see entries such as:
+
+NAME                  PRIV   CAPS   SELINUX    RUNASUSER
+anyuid                false  ...    ...        RunAsAny
+hostaccess            false  ...    ...        RunAsAny
+hostmount-anyuid      false  ...    ...        RunAsAny
+hostnetwork           false  ...    ...        RunAsAny
+nonroot               false  ...    ...        MustRunAsNonRoot
+nonroot-v2            false  ...    ...        MustRunAsNonRoot
+privileged            true   ...    ...        RunAsAny
+restricted-v2         false  ...    ...        MustRunAsRange
+
+---------------------------------------------------------------------------------------------------------------
+
+10. restricted-v2
+This is an important SCC to understand.
+restricted-v2 is designed to provide a relatively restrictive security configuration.
+It generally prevents applications from simply choosing arbitrary privileged settings.
+
+For example, an application shouldn't assume:
+I can run as root.
+
+Instead, OpenShift can assign an appropriate non-root UID from the project's allowed range.
+
+-------------------------------------------------------------------------------------------------------------------------
+
+11. anyuid
+Another important SCC is:
+anyuid
+
+It allows a container to run with any UID, including potentially UID 0.
+
+Example
+
+Application requests:
+
+UID = 0
+
+       ↓
+
+     anyuid
+
+       ↓
+
+    Allowed
+
+
+This can be useful for applications that genuinely require a particular UID, but it weakens some of the restrictions compared with a restrictive SCC.
+
+---------------------------------------------------------------------------------------------------------------------------------
+
+12. privileged
+The:
+privileged
+
+SCC is much less restrictive.
+It can allow things such as:
+Privileged containers
+Host access
+Additional capabilities
+Host networking
+Host ports
+
+depending on the SCC configuration.
+You should not give applications the privileged SCC just to make an error disappear.
+
+-----------------------------------------------------------------------------------------------------------------------------------
+
+13. How does SCC get assigned?
+This is one of the most important parts.
+Suppose you have:
+
+User
+ │
+ ▼
+ServiceAccount
+ │
+ ▼
+Pod
+ │
+ ▼
+SCC authorization
+
+SCCs can be associated with users and groups, including service accounts.
+
+For example:
+ServiceAccount:
+    myapp-sa
+
+        │
+        ▼
+
+      SCC:
+    nonroot
+
+Then Pods running under that service account can potentially use that SCC, subject to OpenShift's SCC authorization and admission rules.
+
+------------------------------------------------------------------------------------------------------------------------------------------
+
+14. ServiceAccount example
+Create a service account:
+oc create serviceaccount myapp-sa
+
+Then your Deployment might specify:
+
+spec:
+  template:
+    spec:
+      serviceAccountName: myapp-sa
+
+      containers:
+      - name: myapp
+        image: myapp:1.0
+
+The SCC authorization process determines which SCC the Pod can use.
+
+15. Granting an SCC
+For example, an administrator could grant an SCC to a service account:
+oc adm policy add-scc-to-user anyuid \
+  -z myapp-sa \
+  -n myproject
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+17. How to see which SCC a Pod is using
+This is very useful when troubleshooting.
+You can inspect the Pod:
+oc get pod <pod-name> -o yaml
+
+Look for the SCC annotation, commonly:
+openshift.io/scc: restricted-v2
