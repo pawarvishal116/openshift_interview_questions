@@ -5,3 +5,38 @@
 --> * IPI - Installer provision infrastructure . USed in less restricted environments.
     * UPI - User provisioned infrastructure. Infra is precreated . preferred in banking/ on-premises due to security, network control and compliance .
     In regulated environments UPI is mandatory .
+
+3) How do you rollback if upgrade fails ?
+--> Worker upgrades are paused immediately. If control-plan issue occurs, I restore from etcd backup, isolate faulty nodes and engage redhat support if required. Rollback planning start before upgrade execution.
+
+4) How do SCC differ from Kubernetes PSPs?
+--> SCC are more granular and enforce policies like 
+      * runasnonroot
+      * allowed volumes
+      * SELINUX contexts
+   Unlike PSPs(now removed), SCC are openshift native and enforced by default.
+
+5) How do you design RBAC for multi team cluster ?
+-->   * namespace level for developers
+      * cluster roles only for platform teams
+      * service accounts for CI/CD
+      * no direct admin access . Admin access managed through PAG role .
+
+6) How do you isolate traffic between applications?
+--> Using network policies
+      * default denies
+      * Explicit allow rules
+
+7) Explain openshift networking flow ?
+-->   * OpenshiftSDN or OVN-kubernetes handles pod networking
+      * Service handle east west traffic
+      * route expose app externally
+      * ingress controller terminates TLS
+      Traffic is segmented and policy driven.
+
+8) How do you handle persistent storage failure ?
+-->   * Validate PVC/PV binding
+      * Check CSI driver health
+      * Validate backend storage
+      * restore from snapshot/backup if required
+      
