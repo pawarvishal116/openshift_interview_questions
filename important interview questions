@@ -2,8 +2,9 @@
 --> I have worked primarily on 4.x . Lifecycle management is handled throught redhat supported upgrade channel. I validate cluster operator health, deprecated APIs, nodes health, compatibility before upgrades .
 
 2) Explain IPI vs UPI . When do you choose each ?
---> * IPI - Installer provision infrastructure . USed in less restricted environments.
-    * UPI - User provisioned infrastructure. Infra is precreated . preferred in banking/ on-premises due to security, network control and compliance .
+--> * IPI - Installer provision infrastructure . USed in less restricted environments. IPI is preffered where automation is permitted.
+    * UPI - User provisioned infrastructure. Infra is precreated . preferred in banking/ on-premises because it gives full control over networking, security and compliance.
+            
     In regulated environments UPI is mandatory .
 
 3) How do you rollback if upgrade fails ?
@@ -66,4 +67,38 @@
 14) Explain your CI/CD integration and deployment steps ?
 --> HIgh Important
 
-15) 
+15) How do you design HA in openshift ?
+-->   * multi-node control plane
+      * worker spread across failure domains
+      * HPA for apps
+      * rolling updates
+      * redundant storage/network
+
+16) Describe real production incident you handled?
+--> node failure cause pod disruption . 
+
+17) What is your on-call model ?
+-->   * 24/7 coverage
+      * P1-P4 severity
+      * primary/secondary rotation
+      * clear escalations path
+      * war-room ownership
+
+18) How do you conduct RCA?
+-->
+
+19) How do you explain tehnical issue to business teams ?
+--> I translate incident into
+      * customer impact
+      * risk
+      * recovery time
+      * preventive actions
+      * No technical jargons
+
+20) How do you manage multiple priorities ?
+--> production stability always comes first.
+
+21) Why openshift for banking platform ?
+--> Openshift provides enterprise security (SCC, RBAC), controlled upgrades, buit-in obervability and vendor support which are mandatory for regulated environments.
+
+22) 
