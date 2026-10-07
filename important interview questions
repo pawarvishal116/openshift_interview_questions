@@ -70,6 +70,8 @@
 15) How do you design HA in openshift ?
 -->   * multi-node control plane
       * worker spread across failure domains
+      * external load balancer
+      * netowrk policies for isolation
       * HPA for apps
       * rolling updates
       * redundant storage/network
@@ -125,3 +127,32 @@
       * Engage redhat support if require
 
 25) Storage backed pods failed to start . What do you do ?
+-->   * Check PVC binding
+      * Validate storageclass
+      * Verify CSI driver health
+      * Check backend storage
+      * Restore from snapshot if required.
+
+26) Monitoring alerts are firing continuously. How do you fix alert fatigue?
+-->   * Validate alert threshold
+      * Converts alert to SLO-based
+      * Group alerts in alert manager
+      * Removed non actionable alerts
+
+27) Explain openshift request flow?
+--> Client -> route -> ingress controller -> service -> pods 
+    TLS termination at ingress, traffic controlled by netowork policies.
+
+28) Design DR for openshift?
+-->   * Regular etcd backups
+      * Velero backups
+      * Secondary cluster readiness
+      * DNS based failover
+      * Periodic DR drills
+
+29) How do you secure multitenant openshift cluster ?
+-->   * namespace isolation
+      * RBAC per team
+      * SCC enforcement
+      * networkpolicies
+      * separate ci/cd service accounts
