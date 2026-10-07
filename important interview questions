@@ -39,4 +39,31 @@
       * Check CSI driver health
       * Validate backend storage
       * restore from snapshot/backup if required
-      
+
+9) What is your backup strategy ?
+-->   * etcd backup for cluster health
+      * Velero for namepaces and workloads
+
+10) How do you implement monitoring in openshift ?
+--> Used tools like GAP , kibana and dynatrace .
+
+11) How do you reduce alerts fatigue?
+--> 
+
+12) How is logging implemented ?
+-->   * Fluentbit daemonset
+      * logstash pipelines for parsing + PII masking
+      * HA elasticsearch
+      * kibana for analysis
+
+13) How do you troubleshoot crashing pods ?
+-->   * Pod events
+      * container logs
+      * resource limits
+      * readiness/ liveness probes
+      * node health
+
+14) Explain your CI/CD integration and deployment steps ?
+--> HIgh Important
+
+15) 
