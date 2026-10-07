@@ -101,4 +101,27 @@
 21) Why openshift for banking platform ?
 --> Openshift provides enterprise security (SCC, RBAC), controlled upgrades, buit-in obervability and vendor support which are mandatory for regulated environments.
 
-22) 
+22) Node show not ready status? What do you check ?
+-->   * Kubelet status
+      * Disk pressure/memory pressure
+      * Network connectivity
+      * Certificate expiry
+      * node logs
+      If needed need to cordon and drain node 
+
+23) Application is slow but pod is running. How do you debug?
+-->   * Check prometheus latency metrics
+      * Validate memory/CPU throttling
+      * Review application logs
+      * Check database and downstream latency
+      * Verify autoscaling behaviour
+      * Check load on databse
+
+24) Openshift API slow or unresponsive . What is your approach?
+-->   * Check etcd health
+      * Validate control plane CPU/memory
+      * Check API server logs
+      * Review certificate expiry
+      * Engage redhat support if require
+
+25) Storage backed pods failed to start . What do you do ?
