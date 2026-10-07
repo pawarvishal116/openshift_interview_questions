@@ -1,1 +1,7 @@
+1) What openshift version have you worked on and how do you manage lifecycle ?
+--> I have worked primarily on 4.x . Lifecycle management is handled throught redhat supported upgrade channel. I validate cluster operator health, deprecated APIs, nodes health, compatibility before upgrades .
 
+2) Explain IPI vs UPI . When do you choose each ?
+--> * IPI - Installer provision infrastructure . USed in less restricted environments.
+    * UPI - User provisioned infrastructure. Infra is precreated . preferred in banking/ on-premises due to security, network control and compliance .
+    In regulated environments UPI is mandatory .
